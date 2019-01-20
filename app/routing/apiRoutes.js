@@ -13,11 +13,11 @@ module.exports = function(app){
     app.post('/api/friends',function(req,res){
         //the current user data just received from the survey form
         let currentUser = req.body;
-        //an array to keep all comparing results between the current user and
-        //saved people
-        let allScores = [];
         //a variable to keep the lowest result index 
         let lowestIndex = 0;
+        //defined a variable to keep track of the minimum result
+        //gave it an high value to be replaced with any result 
+        let minResult = 1000;
         //if the current user already saved so we don't have to process his data in the
         //matching process, to know if the user exist i used email field to see if this user
         //already saved before
@@ -30,8 +30,6 @@ module.exports = function(app){
             if(currentUser.email === friendsData[i].email){
                 //if yes then pass him 
                 exist = true;
-                //put high score for this user so it won't count 
-                allScores.push(100);
                 continue;
             }
             //loop through the score values 
@@ -41,21 +39,12 @@ module.exports = function(app){
             }
             //remove the negative sign if there is one
             result = Math.abs(result);
-            //if the scores results arrary is empty just push into it
-            if(allScores.length == 0){
-                //assume the first index is the lowest result
+            //check the result with the saved min result if it is less
+            if(result < minResult){
+                //keep it in the minResult variable
+                minResult = result;
+                //and keep the index
                 lowestIndex = i;
-                //and save the result in the array results
-                allScores.push(result);
-            //if the results array is not empty then check the lowest result 
-            }else{
-                // if the new result less than the lowest result in the results array
-                if(result < allScores[lowestIndex]){
-                    //then replace the lowest index with the new index
-                    lowestIndex = i;
-                }
-                //then push the result to the array
-                allScores.push(result);
             }
             
         }
@@ -75,7 +64,7 @@ module.exports = function(app){
         });
         //if the results array is not empty and the lowest result is less than 5
         //then we found a match for the user
-        if(allScores.length > 0 && allScores[lowestIndex] <=5){
+        if(lowestIndex < 1000){
             //send the match person to the survey page
             res.json(friendsData[lowestIndex]);
         //if not
